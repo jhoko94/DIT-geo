@@ -1,9 +1,25 @@
 const axios = require("axios");
+const jwt = require("jsonwebtoken");
+
 const { upstreamApiAgregator } = require("../config/dotenv");
+const {
+  getToken,
+  loginAgregator,
+  setToken,
+} = require("../services/agregatorLogin");
 const haversineService = require("../services/haversineService");
 
 exports.FindDevicebyLatLon = async (req, res) => {
   const { latitude, longitude, type } = req.body;
+
+  const decodedToken = jwt.decode(getToken(), { complete: true });
+  const { payload } = decodedToken;
+  const { exp } = payload;
+
+  if (triggerOneHourBeforeExpiration(exp)) {
+    const agregatorToken = await loginAgregator();
+    setToken(agregatorToken);
+  }
 
   if (!latitude || !longitude || !type) {
     return res.status(400).json({ error: "Missing required parameters" });
@@ -17,8 +33,7 @@ exports.FindDevicebyLatLon = async (req, res) => {
     };
 
     const headers = {
-      Authorization:
-        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzAyLCJ1c2VybmFtZSI6InVzZXJfdGVzdDAxIiwibWFza2luZyI6MCwiaWF0IjoxNzI4ODgwMDMzLCJleHAiOjE3Mjg5NjY0MzN9.zQGDoVlqG1yTMM-_fHYEl0OebsFgVZCfrr_fgnzmA5M",
+      Authorization: `Bearer ${getToken()}`,
     };
 
     const response = await axios.post(
@@ -211,4 +226,17 @@ function hitungUdara(latitude, longitude, params) {
   }));
 
   return distances;
+}
+
+function triggerOneHourBeforeExpiration(expTimeInMs) {
+  const oneHourInMs = 60 * 60 * 1000;
+  const currentTime = Date.now();
+
+  const timeUntilTrigger = expTimeInMs - oneHourInMs - currentTime;
+
+  if (timeUntilTrigger > 0) {
+    return true;
+  } else {
+    return false;
+  }
 }

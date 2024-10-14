@@ -6,6 +6,7 @@ const dataRoutes = require("./routes/dataRoutes");
 const gedungRoutes = require("./routes/gedungRoutes");
 const deviceRoutes = require("./routes/deviceRoutes");
 const lokasiterdekatRoutes = require("./routes/lokasiterdekatRoutes");
+const datafromagregator = require("./routes/dataFromAgregatorRoutes");
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,7 @@ app.use("/api/data", dataRoutes);
 app.use("/api/gedung", gedungRoutes);
 app.use("/api/device", deviceRoutes);
 app.use("/api/lokasiterdekat", lokasiterdekatRoutes);
+app.use("/api/datafromagregator", datafromagregator);
 
 const PORT = dotenv.port;
 app.listen(PORT, () => {

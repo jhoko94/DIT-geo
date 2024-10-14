@@ -150,3 +150,33 @@ exports.getLokasiTerdekatUdara = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// exports.getLokasiTerdekatFromAgregator = async (req, res) => {
+//   const { latitude, longitude, golongan } = req.body;
+
+//   try {
+//     const result = await pool.query(
+//       "SELECT device_name, latitude, longitude FROM tbl_device_loc"
+//     );
+//     const locations = result.rows;
+
+//     let distanceResults = [];
+//     if (golongan == "darat") {
+//       distanceResults = await hitungDarat(latitude, longitude, locations);
+//     } else if (golongan == "udara") {
+//       distanceResults = hitungUdara(latitude, longitude, locations);
+//     } else {
+//       return res.json({ message: "golongan belum di isi" });
+//     }
+
+//     distanceResults.sort(
+//       (a, b) => parseFloat(a.distance) - parseFloat(b.distance)
+//     );
+//     const nearestLocations = distanceResults.slice(0, 5);
+
+//     res.json(nearestLocations);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };

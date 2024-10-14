@@ -1,7 +1,0 @@
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=geoDb
-
-UPSTREAM_API_URL=https://pelindung.bandung.go.id:8443/api/cek

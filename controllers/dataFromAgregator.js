@@ -81,6 +81,15 @@ exports.FindDevicebyLatLon = async (req, res) => {
 exports.FindDevicebyLatLonUdara = async (req, res) => {
   const { latitude, longitude, type } = req.body;
 
+  const decodedToken = jwt.decode(getToken(), { complete: true });
+  const { payload } = decodedToken;
+  const { exp } = payload;
+
+  if (triggerOneHourBeforeExpiration(exp)) {
+    const agregatorToken = await loginAgregator();
+    setToken(agregatorToken);
+  }
+
   if (!latitude || !longitude || !type) {
     return res.status(400).json({ error: "Missing required parameters" });
   }
@@ -93,8 +102,7 @@ exports.FindDevicebyLatLonUdara = async (req, res) => {
     };
 
     const headers = {
-      Authorization:
-        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzAyLCJ1c2VybmFtZSI6InVzZXJfdGVzdDAxIiwibWFza2luZyI6MCwiaWF0IjoxNzI4ODgwMDMzLCJleHAiOjE3Mjg5NjY0MzN9.zQGDoVlqG1yTMM-_fHYEl0OebsFgVZCfrr_fgnzmA5M",
+      Authorization: `Bearer ${getToken()}`,
     };
 
     const response = await axios.post(
@@ -128,6 +136,15 @@ exports.FindDevicebyLatLonUdara = async (req, res) => {
 exports.FindDevicebyLatLonDarat = async (req, res) => {
   const { latitude, longitude, type } = req.body;
 
+  const decodedToken = jwt.decode(getToken(), { complete: true });
+  const { payload } = decodedToken;
+  const { exp } = payload;
+
+  if (triggerOneHourBeforeExpiration(exp)) {
+    const agregatorToken = await loginAgregator();
+    setToken(agregatorToken);
+  }
+
   if (!latitude || !longitude || !type) {
     return res.status(400).json({ error: "Missing required parameters" });
   }
@@ -140,8 +157,7 @@ exports.FindDevicebyLatLonDarat = async (req, res) => {
     };
 
     const headers = {
-      Authorization:
-        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzAyLCJ1c2VybmFtZSI6InVzZXJfdGVzdDAxIiwibWFza2luZyI6MCwiaWF0IjoxNzI4ODgwMDMzLCJleHAiOjE3Mjg5NjY0MzN9.zQGDoVlqG1yTMM-_fHYEl0OebsFgVZCfrr_fgnzmA5M",
+      Authorization: `Bearer ${getToken()}`,
     };
 
     const response = await axios.post(
@@ -189,12 +205,8 @@ async function hitungDarat(latitude, longitude, params) {
       const response = await axios.get(osrmUrl);
       const routeDistance = response.data.routes[0].distance / 1000;
 
-      distanceResults.push({
-        device_name: location.DEVICE_NAME,
-        latitude: location.LATITUDE,
-        longitude: location.LONGITUDE,
-        distance: routeDistance.toFixed(2) + " km",
-      });
+      const objTemp = { DISTANCE_DARAT: `${routeDistance.toFixed(2)} km` };
+      distanceResults.push({ ...location, ...objTemp });
     } catch (error) {
       if (error.response && error.response.status === 429) {
         console.error("Rate limit exceeded. Retrying after delay...");
@@ -210,22 +222,24 @@ async function hitungDarat(latitude, longitude, params) {
 }
 
 function hitungUdara(latitude, longitude, params) {
-  const distances = params.map((loc) => ({
-    device_name: loc.DEVICE_NAME,
-    latitude: loc.LATITUDE,
-    longitude: loc.LONGITUDE,
-    distance:
-      haversineService
+  let distance = [];
+  for (let index = 0; index < params.length; index++) {
+    const loc = params[index];
+    const objTemp = {
+      DISTANCE_UDARA: `${haversineService
         .haversine(
           parseFloat(latitude),
           parseFloat(longitude),
           parseFloat(loc.LATITUDE),
           parseFloat(loc.LONGITUDE)
         )
-        .toFixed(2) + " km",
-  }));
+        .toFixed(2)} km`,
+    };
 
-  return distances;
+    distance.push({ ...loc, ...objTemp });
+  }
+
+  return distance;
 }
 
 function triggerOneHourBeforeExpiration(expTimeInMs) {

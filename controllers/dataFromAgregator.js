@@ -188,35 +188,27 @@ exports.FindDevicebyLatLonDarat = async (req, res) => {
   }
 };
 
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function hitungDarat(latitude, longitude, params) {
   const origin = `${longitude},${latitude}`;
-  let distanceResults = [];
 
-  for (let index = 0; index < params.length; index++) {
-    const location = params[index];
-    const destination = `${location.LONGITUDE},${location.LATITUDE}`;
-    const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${origin};${destination}?overview=false&geometries=geojson`;
+  const distanceResults = await Promise.all(
+    params.map(async (location) => {
+      const destination = `${location.LONGITUDE},${location.LATITUDE}`;
+      const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${origin};${destination}?overview=false&geometries=geojson`;
 
-    try {
-      const response = await axios.get(osrmUrl);
-      const routeDistance = response.data.routes[0].distance / 1000;
-
-      const objTemp = { DISTANCE_DARAT: `${routeDistance.toFixed(2)} km` };
-      distanceResults.push({ ...location, ...objTemp });
-    } catch (error) {
-      if (error.response && error.response.status === 429) {
-        console.error("Rate limit exceeded. Retrying after delay...");
-        await delay(2000);
-        index--;
-      } else {
-        console.error("Error fetching route:", error.message);
+      try {
+        const response = await axios.get(osrmUrl);
+        const routeDistance = response.data.routes[0].distance / 1000;
+        return {
+          ...location,
+          DISTANCE_DARAT: `${routeDistance.toFixed(2)} km`,
+        };
+      } catch (error) {
+        console.error(`Error fetching route for ${location}:`, error.message);
+        return { ...location, DISTANCE_DARAT: "Error" };
       }
-    }
-  }
+    })
+  );
 
   return distanceResults;
 }

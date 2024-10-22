@@ -52,7 +52,7 @@ exports.FindDevicebyLatLon = async (req, res) => {
     );
 
     distanceResultsDarat.sort(
-      (a, b) => parseFloat(a.distance) - parseFloat(b.distance)
+      (a, b) => parseFloat(a.DISTANCE_DARAT_OSRM?a.DISTANCE_DARAT_OSRM:a.DISTANCE_DARAT_GRAPHOOPER) - parseFloat(b.DISTANCE_DARAT_OSRM?b.DISTANCE_DARAT_OSRM:b.DISTANCE_DARAT_GRAPHOOPER)
     );
 
     // Calculate distances for 'udara' only after 'darat' is complete
@@ -63,7 +63,7 @@ exports.FindDevicebyLatLon = async (req, res) => {
     );
 
     distanceResultsUdara.sort(
-      (a, b) => parseFloat(a.distance) - parseFloat(b.distance)
+      (a, b) => parseFloat(a.DISTANCE_UDARA) - parseFloat(b.DISTANCE_UDARA)
     );
 
     const nearestLocations = {

@@ -189,16 +189,18 @@ exports.FindDevicebyLatLonDarat = async (req, res) => {
 };
 
 async function hitungDarat(latitude, longitude, params) {
-  const origin = `${longitude},${latitude}`;
+  const origin = `${latitude},${longitude}`;
 
   const distanceResults = await Promise.all(
     params.map(async (location) => {
-      const destination = `${location.LONGITUDE},${location.LATITUDE}`;
-      const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${origin};${destination}?overview=false&geometries=geojson`;
+      const destination = `${location.LATITUDE},${location.LONGITUDE}`;
+      const graphHooperUrl = `http://10.62.125.116:8989/route?point=${origin}&point=${destination}&profile=car`
+      // const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${origin};${destination}?overview=false&geometries=geojson`;
 
       try {
-        const response = await axios.get(osrmUrl);
-        const routeDistance = response.data.routes[0].distance / 1000;
+        const response = await axios.get(graphHooperUrl);
+        // const routeDistance = response.data.routes[0].distance / 1000;
+        const routeDistance = response.data.paths[0].distance / 1000
         return {
           ...location,
           DISTANCE_DARAT: `${routeDistance.toFixed(2)} km`,
